@@ -361,6 +361,7 @@ class VotarView(LoginRequiredMixin, View):
         return redirect("festival:mis_votos")
 
 
+
 class MisVotosView(LoginRequiredMixin, ListView):
     """Participación del usuario: categorías en las que ya votó (CP-07)."""
 
@@ -373,3 +374,45 @@ class MisVotosView(LoginRequiredMixin, ListView):
             .select_related("edicion", "categoria", "votacion", "opcion")
             .order_by("-emitido_en", "-pk")
         )
+
+
+class ResultadosView(DetailView):
+    """Muestra los resultados de las votaciones oficialmente publicadas."""
+
+    model = Votacion
+    template_name = "festival/resultados.html"
+    context_object_name = "votacion"
+
+    def get_queryset(self):
+        return (
+            Votacion.objects.filter(
+                estado=Votacion.Estado.PUBLICADA,
+                categoria__activa=True,
+                categoria__edicion__activa=True,
+            )
+            .select_related("categoria", "categoria__edicion")
+        )
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        votacion = self.object
+
+        opciones = (
+            Opcion.objects.filter(votacion=votacion)
+            .annotate(total_votos=Count("votos"))
+            .order_by("-total_votos", "orden", "nombre")
+        )
+
+        total_votos = Voto.objects.filter(votacion=votacion).count()
+
+        for opcion in opciones:
+            opcion.porcentaje = (
+                (opcion.total_votos * 100 / total_votos)
+                if total_votos > 0
+                else 0
+            )
+
+        context["opciones"] = opciones
+        context["total_votos"] = total_votos
+
+        return context

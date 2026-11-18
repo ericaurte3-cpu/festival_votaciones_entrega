@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block titulo %}Resultados · {{ votacion.nombre }}{% endblock %}
+
+{% block contenido %}
+<div class="container py-4">
+
+    <div class="mb-4">
+        <a href="{% url 'festival:votacion' votacion.pk %}" class="btn btn-outline-secondary btn-sm">
+            ← Volver a la votación
+        </a>
+    </div>
+
+    <div class="mb-4">
+        <h1 class="h2">Resultados de la votación</h1>
+        <h2 class="h4 text-muted">{{ votacion.nombre }}</h2>
+
+        <p class="mb-1">
+            <strong>Categoría:</strong> {{ votacion.categoria.nombre }}
+        </p>
+
+        <p class="mb-1">
+            <strong>Edición:</strong> {{ votacion.categoria.edicion.nombre }}
+        </p>
+
+        <p>
+            <strong>Total de votos:</strong> {{ total_votos }}
+        </p>
+    </div>
+
+    <hr>
+
+    <h3 class="h5 mb-3">Resultados por participante</h3>
+
+    {% if opciones %}
+        {% for opcion in opciones %}
+            <div class="card mb-3">
+                <div class="card-body">
+
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h4 class="h6 mb-0">{{ opcion.nombre }}</h4>
+
+                        <strong>
+                            {{ opcion.total_votos }} voto{{ opcion.total_votos|pluralize }}
+                        </strong>
+                    </div>
+
+                    <div class="progress"
+                         role="progressbar"
+                         aria-label="Porcentaje de votos de {{ opcion.nombre }}"
+                         aria-valuenow="{{ opcion.porcentaje|floatformat:1 }}"
+                         aria-valuemin="0"
+                         aria-valuemax="100"
+                         style="height: 20px;">
+
+                        <div class="progress-bar"
+                             style="width: {{ opcion.porcentaje }}%">
+                            {{ opcion.porcentaje|floatformat:1 }}%
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="alert alert-info">
+            No hay participantes registrados en esta votación.
+        </div>
+    {% endif %}
+
+    {% if total_votos == 0 %}
+        <div class="alert alert-secondary">
+            Esta votación todavía no registra votos.
+        </div>
+    {% endif %}
+
+</div>
+{% endblock %}
