@@ -1,212 +1,507 @@
+
 # Sistema Web de Votaciones · Festival de la Leyenda Vallenata 2027
 
-Desarrollo Web · Fundación Universitaria del Área Andina · **Entrega 3: módulo de votaciones, validaciones y API GET**.
+**Desarrollo Web · Fundación Universitaria del Área Andina · Entrega 3: módulo de votaciones, validaciones y API GET.**
 
-Aplicación **Django + MySQL** (patrón MVT) que continúa el proyecto de la Entrega 2. Esta entrega agrega el proceso de votación completo: consultar categorías y opciones, **registrar un voto real en MySQL**, validar restricciones en el servidor, consultar la participación y exponer una **API GET** con respuesta JSON.
+Aplicación web desarrollada con **Django y MySQL**, siguiendo el patrón arquitectónico MVT. El proyecto permite gestionar ediciones, categorías, participantes y votaciones del Festival de la Leyenda Vallenata.
 
-> **Regla central:** cada usuario puede elegir **una sola opción por categoría y edición**. Puede votar en otras categorías, pero no emitir un segundo voto en la misma categoría, aunque esta tenga varios subeventos (votaciones). Se garantiza con una restricción `UNIQUE` en MySQL.
+Esta versión integra el proceso completo de votación, validaciones en el servidor, consulta de participación, API GET en formato JSON, visualización de resultados publicados y mejoras en la interfaz de usuario.
 
-## Qué incluye
+> **Regla central:** cada usuario puede elegir una sola opción por categoría y edición. Puede votar en otras categorías, pero no emitir un segundo voto en la misma categoría, aunque esta tenga varios subeventos. Esta regla se garantiza mediante una restricción `UNIQUE` en MySQL.
 
-| Entrega | Contenido |
+---
+
+## 1. Funcionalidades del sistema
+
+### Gestión del festival
+- Gestión de ediciones del Festival.
+- Administración de categorías.
+- Administración de votaciones y participantes.
+- Activación y desactivación de categorías y opciones.
+- Gestión administrativa mediante Django Admin.
+- Registro de auditoría de las operaciones administrativas.
+
+### Gestión de usuarios
+- Registro de nuevos usuarios.
+- Inicio y cierre de sesión.
+- Autenticación mediante correo electrónico.
+- Control de acceso según el perfil del usuario.
+- Protección de las operaciones de votación.
+
+### Módulo de votaciones
+- Consulta de categorías y opciones disponibles.
+- Selección y confirmación del voto.
+- Registro de votos en MySQL.
+- Validación de votaciones abiertas y fechas de participación.
+- Restricción de un voto por usuario, categoría y edición.
+- Prevención de votos duplicados incluso ante solicitudes simultáneas.
+- Historial de participación mediante la sección **Mis votos**.
+- Consulta administrativa de los votos registrados.
+
+### Resultados
+- Visualización de resultados de votaciones publicadas.
+- Conteo de votos por participante.
+- Cálculo de porcentajes de participación.
+- Consulta de resultados asociados a las categorías y ediciones.
+- Restricción de visualización según el estado de publicación.
+
+### Interfaz
+- Diseño responsive adaptable a diferentes tamaños de pantalla.
+- Interfaz desarrollada con Bootstrap 5 local.
+- Navegación mediante menús y enlaces.
+- Visualización de categorías y cantidad de votaciones.
+- Indicadores de votaciones abiertas.
+- Plantillas HTML organizadas por funcionalidad.
+
+### API
+- Endpoint GET para consultar categorías.
+- Respuesta en formato JSON.
+- Consulta de información desde MySQL.
+- Filtro opcional por edición.
+
+---
+
+## 2. Tecnologías y versiones
+
+| Componente | Versión o tecnología |
 |---|---|
-| 2 | Modelo **Edición → Categoría → Votación → Opción**, Django Admin, registro e inicio de sesión por correo, interfaz pública responsive (Bootstrap local), gestión de ediciones, auditoría. |
-| **3** | Modelo **`Voto`**, votación en dos pasos (selección → confirmación), validaciones de servidor, restricción de unicidad en BD con manejo de concurrencia, historial «Mis votos», consulta administrativa de votos y **`GET /api/categorias/`**. |
+| Lenguaje | Python 3.13 |
+| Framework | Django 5.2 |
+| Base de datos | MySQL 8.x |
+| Conector | mysqlclient >= 2.2 |
+| Variables de entorno | python-decouple >= 3.8 |
+| Frontend | HTML5, CSS3 y JavaScript |
+| Framework visual | Bootstrap 5 |
+| Arquitectura | MVT |
+| Control de versiones | Git y GitHub |
 
-## Tecnologías y versiones
+Las dependencias se encuentran en el archivo `requirements.txt`.
 
-| Componente | Versión |
-|---|---|
-| Python | 3.10 o superior (desarrollado y probado con **3.13**) |
-| Django | **5.2 LTS** (`>=5.2,<5.3`) |
-| MySQL | 8.x (las pruebas también se ejecutaron en MariaDB 10.11) |
-| mysqlclient | `>=2.2` (conector MySQL) |
-| python-decouple | `>=3.8` (lectura de `.env`) |
-| Interfaz | HTML5, CSS3, JavaScript y Bootstrap 5 (incluido localmente, sin CDN) |
+---
 
-Dependencias exactas en [`requirements.txt`](requirements.txt).
+## 3. Requisitos previos
 
-## Instalación y ejecución (Windows, PowerShell)
+Antes de ejecutar el proyecto se necesita:
+
+- Python 3.10 o superior.
+- MySQL Server 8.x.
+- Git.
+- PowerShell en Windows.
+- Un navegador web actualizado.
+
+---
+
+## 4. Instalación y ejecución en Windows
+
+### Paso 1. Clonar el repositorio
 
 ```powershell
-# 1. Clonar y entrar al proyecto
-git clone <URL_DEL_REPOSITORIO>
-cd festival_votaciones
+git clone https://github.com/ericaurte3-cpu/festival_votaciones_entrega.git
+cd festival_votaciones_entrega
+```
 
-# 2. Entorno virtual y dependencias
+### Paso 2. Crear el entorno virtual
+
+```powershell
 python -m venv venv
+```
+
+Activar el entorno:
+
+```powershell
 venv\Scripts\Activate.ps1
+```
+
+Si PowerShell bloquea la activación:
+
+```powershell
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+```
+
+Luego vuelve a ejecutar:
+
+```powershell
+venv\Scripts\Activate.ps1
+```
+
+### Paso 3. Instalar dependencias
+
+```powershell
+python -m pip install --upgrade pip
 pip install -r requirements.txt
+```
 
-# 3. Crear la base de datos y un usuario en MySQL (cliente mysql, como root)
-#    CREATE DATABASE festival_votaciones CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-#    CREATE USER 'festival_user'@'localhost' IDENTIFIED BY 'TU_CONTRASEÑA';
-#    GRANT ALL PRIVILEGES ON festival_votaciones.* TO 'festival_user'@'localhost';
-#    GRANT ALL PRIVILEGES ON test_festival_votaciones.* TO 'festival_user'@'localhost';  -- para las pruebas
-#    FLUSH PRIVILEGES;
+### Paso 4. Crear la base de datos MySQL
 
-# 4. Configuración local (el archivo .env NO se sube a git)
+Ingresar al cliente MySQL como administrador y ejecutar:
+
+```sql
+CREATE DATABASE festival_votaciones
+CHARACTER SET utf8mb4
+COLLATE utf8mb4_unicode_ci;
+
+CREATE USER 'festival_user'@'localhost'
+IDENTIFIED BY 'TU_CONTRASEÑA';
+
+GRANT ALL PRIVILEGES ON festival_votaciones.*
+TO 'festival_user'@'localhost';
+
+GRANT ALL PRIVILEGES ON test_festival_votaciones.*
+TO 'festival_user'@'localhost';
+
+FLUSH PRIVILEGES;
+```
+
+Reemplazar `TU_CONTRASEÑA` por una contraseña propia.
+
+### Paso 5. Configurar variables de entorno
+
+Crear el archivo `.env` a partir de la plantilla:
+
+```powershell
 copy .env.example .env
-#    Edite .env: ponga su contraseña de MySQL en DB_PASSWORD y una DJANGO_SECRET_KEY propia
+```
 
-# 5. Migraciones (crean las tablas, incluida la de votos y su restricción UNIQUE)
+Abrir el archivo:
+
+```powershell
+notepad .env
+```
+
+Configurar los valores correspondientes:
+
+```env
+DJANGO_SECRET_KEY=coloca_una_clave_secreta_propia
+DJANGO_DEBUG=True
+DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1
+
+DB_NAME=festival_votaciones
+DB_USER=festival_user
+DB_PASSWORD=tu_contraseña_mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+```
+
+**Importante:** el archivo `.env` contiene información privada y no debe publicarse en GitHub. El archivo `.env.example` funciona como plantilla de configuración.
+
+### Paso 6. Aplicar migraciones
+
+```powershell
 python manage.py migrate
+```
 
-# 6. Datos de prueba ficticios + 3 votantes de prueba + administrador
+Este comando crea las tablas necesarias en MySQL.
+
+### Paso 7. Cargar datos de prueba
+
+```powershell
 python manage.py cargar_datos_prueba --votantes 3 --password "UnaClaveDePrueba-2027"
-python manage.py createsuperuser
+```
 
-# 7. Servidor de desarrollo
+Este comando permite cargar datos ficticios y usuarios de prueba.
+
+También se puede crear un administrador:
+
+```powershell
+python manage.py createsuperuser
+```
+
+### Paso 8. Ejecutar el servidor
+
+```powershell
 python manage.py runserver
 ```
 
-En Linux/macOS: `source venv/bin/activate` en lugar de `venv\Scripts\Activate.ps1` y `cp` en lugar de `copy`.
+Abrir en el navegador:
 
-- Sitio público: <http://127.0.0.1:8000/> · Administración: <http://127.0.0.1:8000/admin/>
-- Votantes de prueba: `votante1@example.com`, `votante2@example.com`, `votante3@example.com`, con la contraseña indicada en `--password`. Si se omite `--password`, el comando genera una aleatoria y la muestra una sola vez (no hay contraseñas escritas en el código).
-- `cargar_datos_prueba --limpiar` reinicia los datos de prueba (también borra los votos).
+- Sitio principal: http://127.0.0.1:8000/
+- Administración: http://127.0.0.1:8000/admin/
+- API de categorías: http://127.0.0.1:8000/api/categorias/
 
-> Si `pip install mysqlclient` falla en Windows, actualice pip (`python -m pip install -U pip`) para usar la rueda precompilada; en Linux instale antes `libmysqlclient-dev` (o `libmariadb-dev`) y `pkg-config`.
+---
 
-### Variables de entorno (`.env`)
+## 5. Usuarios de prueba
 
-Plantilla sin secretos en [`.env.example`](.env.example). **Nunca** suba el `.env` real: contiene la contraseña de MySQL y la clave secreta. Está en `.gitignore`.
+El comando de carga de datos permite crear tres usuarios de prueba:
 
-## Cómo probar el módulo de votaciones
-
-1. Inicie sesión como `votante1@example.com`.
-2. Abra una categoría con votación abierta (por ejemplo «Acordeonero profesional»), elija una opción y pulse **Continuar y confirmar voto**; revise el resumen y pulse **Confirmar voto**.
-3. Intente votar otra vez en la misma categoría (otra opción, o en el subevento «Semifinal»): el sistema lo rechaza.
-4. Vote en otra categoría («Canción vallenata inédita»): se permite.
-5. Consulte **Mis votos**. Como administrador, vea **Administración → Votos** (solo lectura).
-6. Abra <http://127.0.0.1:8000/api/categorias/> para ver el JSON.
-
-## API GET
-
-`GET /api/categorias/` devuelve, en JSON, las categorías públicas (categoría y edición activas) con sus votaciones (sin borradores) y las opciones activas, leídas de MySQL. No requiere sesión y no expone datos de usuarios ni de votos.
-
-```json
-{
-  "total": 7,
-  "categorias": [
-    {
-      "id": 1,
-      "nombre": "Acordeonero profesional",
-      "descripcion": "Concurso central del Festival de música tradicional.",
-      "edicion": {"id": 1, "nombre": "Festival de la Leyenda Vallenata", "anio": 2027},
-      "total_opciones": 7,
-      "votaciones": [
-        {
-          "id": 1,
-          "nombre": "Votación del público · Acordeonero profesional 2027",
-          "estado": "abierta",
-          "acepta_votos": true,
-          "fecha_apertura": "2026-11-04T13:32:31-05:00",
-          "fecha_cierre": "2026-11-10T13:32:31-05:00",
-          "opciones": [
-            {"id": 1, "nombre": "Participante de prueba 1", "descripcion": "...", "orden": 1}
-          ]
-        }
-      ]
-    }
-  ]
-}
-```
-
-- Parámetro opcional `?edicion=<id>` filtra por edición (valor no numérico → `400` con JSON de error).
-- Solo acepta `GET` (otros métodos → `405`; un `POST` sin token CSRF recibe `403` antes de llegar a la vista). Usa 3 consultas SQL sin importar el volumen (`select_related`/`prefetch_related`).
-- Si la API se ejecuta en `localhost`, solo es accesible desde el equipo que ejecuta el servidor.
-
-## Dónde está cada cosa (para la revisión)
-
-| Requisito | Archivo |
+| Usuario | Correo |
 |---|---|
-| Modelo `Voto` y **restricción de unicidad** (`voto_unico_usuario_categoria_edicion`) | [`festival/models.py`](festival/models.py) (clase `Voto`) |
-| Migración de la tabla de votos y su UNIQUE | [`festival/migrations/0003_voto.py`](festival/migrations/0003_voto.py) |
-| **Control de duplicados**, validaciones y manejo de `IntegrityError` | [`festival/servicios.py`](festival/servicios.py) |
-| Vistas de votación (POST + CSRF + login) e historial | [`festival/views.py`](festival/views.py) (`VotarView`, `MisVotosView`) |
-| Formulario de voto | [`festival/forms.py`](festival/forms.py) (`VotoForm`) |
-| **API GET `/api/categorias/`** | [`festival/api.py`](festival/api.py) |
-| Rutas | [`festival/urls.py`](festival/urls.py) |
-| Consulta administrativa de votos (solo lectura) | [`festival/admin.py`](festival/admin.py) (`VotoAdmin`) |
-| Plantillas de votación | `templates/festival/votacion.html`, `confirmar_voto.html`, `mis_votos.html` |
-| Pruebas CP-01 a CP-10 | [`festival/tests_votos.py`](festival/tests_votos.py) |
-| Datos de prueba | [`festival/management/commands/cargar_datos_prueba.py`](festival/management/commands/cargar_datos_prueba.py) |
+| Votante 1 | votante1@example.com |
+| Votante 2 | votante2@example.com |
+| Votante 3 | votante3@example.com |
 
-## Diseño: cómo se garantiza un voto por categoría y edición
+La contraseña será la indicada mediante el parámetro `--password`.
 
-1. **Base de datos (garantía definitiva):** `UniqueConstraint(usuario, categoria, edicion)` en la tabla `festival_voto`. Edición y categoría se guardan en el propio voto porque una restricción `UNIQUE` solo puede usar columnas de la misma tabla.
-2. **Servidor (mensajes claros):** `servicios.validar_voto` comprueba antes de escribir que la votación esté abierta (estado y periodo), que su categoría y edición estén activas, que la opción exista, esté activa y **pertenezca a la votación**, y que el usuario no haya votado ya en la categoría.
-3. **Concurrencia:** si dos solicitudes pasan la validación a la vez, ambas intentan el `INSERT` y MySQL admite solo una; la otra recibe `IntegrityError`, que se captura y se informa como voto duplicado (sin error 500). El `transaction.atomic()` interno crea un *savepoint* para no invalidar la transacción de la petición (`ATOMIC_REQUESTS=True`).
-4. **Confianza cero en el cliente:** la edición, categoría y votación **no** se leen del formulario; se derivan de la opción validada.
-5. **Integridad histórica:** las claves foráneas de `Voto` son `PROTECT`; un voto no desaparece por borrar en cascada una opción, categoría, edición o usuario.
+Si se omite este parámetro, el comando genera una contraseña aleatoria y la muestra una sola vez.
 
-## Pruebas
+---
 
-```powershell
-python manage.py test                       # todo el proyecto (105 pruebas)
-python manage.py test festival.tests_votos -v 2   # solo el módulo de votaciones (CP-01 a CP-10)
+## 6. Cómo probar el módulo de votaciones
+
+1. Iniciar sesión con uno de los usuarios de prueba.
+2. Ingresar a una categoría con votación abierta.
+3. Seleccionar un participante.
+4. Pulsar **Continuar y confirmar voto**.
+5. Revisar el resumen de la selección.
+6. Confirmar el voto.
+7. Intentar votar nuevamente en la misma categoría para comprobar la restricción de duplicados.
+8. Ingresar a otra categoría y comprobar que sí se permite votar.
+9. Consultar la sección **Mis votos**.
+10. Ingresar como administrador para consultar los votos registrados.
+
+---
+
+## 7. API GET
+
+El proyecto dispone del endpoint:
+
+```text
+GET /api/categorias/
 ```
 
-Requiere el permiso `GRANT ... test_festival_votaciones.*` del paso 3 (Django crea y elimina una base de datos de pruebas). Las pruebas de concurrencia (CP-09) usan varios hilos con conexiones reales a MySQL.
+Este servicio devuelve información en formato JSON sobre las categorías públicas, sus ediciones, votaciones y opciones activas.
 
-| Caso | Qué verifica | Clases/pruebas |
-|---|---|---|
-| CP-01 | Voto válido se registra en MySQL | `CP01VotoValidoTests` |
-| CP-02 | Segundo voto en la misma categoría (otra opción o subevento) se rechaza | `CP02VotoDuplicadoTests` |
-| CP-03 | Voto en otra categoría se permite | `CP03OtraCategoriaTests` |
-| CP-04 | Usuario no autenticado debe iniciar sesión | `CP04AutenticacionTests` |
-| CP-05 | Votación cerrada/borrador/fuera de periodo/categoría inactiva se rechaza | `CP05VotacionNoHabilitadaTests` |
-| CP-06 | Opción de otra categoría o inválida se rechaza | `CP06OpcionInvalidaTests` |
-| CP-07 | «Mis votos» muestra los registros correctos | `CP07MisVotosTests` |
-| CP-08 | Administrador consulta los votos (coinciden con MySQL) | `CP08AdministracionTests` |
-| CP-09 | Dos o más solicitudes simultáneas → un solo voto | `CP09ConcurrenciaTests` |
-| CP-10 | `GET /api/categorias/` devuelve JSON válido con datos reales | `CP10ApiCategoriasTests` |
-| — | Protección CSRF | `CSRFTests` |
+La API:
 
-## Rutas principales
+- No requiere iniciar sesión.
+- No expone información personal de los usuarios.
+- No expone los votos individuales.
+- Permite filtrar por edición mediante el parámetro `edicion`.
 
-| Ruta | Descripción |
-|---|---|
-| `/` | Edición vigente y sus categorías |
-| `/ediciones/`, `/ediciones/<id>/` | Ediciones activas y sus categorías |
-| `/categorias/<id>/` | Votaciones de una categoría (indica si ya votó) |
-| `/votaciones/<id>/` | Opciones y formulario de voto |
-| `/votaciones/<id>/votar/` | **POST**: selección → confirmación → registro (requiere sesión y CSRF) |
-| `/mis-votos/` | Categorías en las que el usuario ya votó |
-| `/api/categorias/` | **API GET** (JSON) |
-| `/gestion/`, `/gestion/ediciones/` | Panel y gestión de ediciones (personal) |
-| `/cuentas/registro/`, `/cuentas/ingresar/`, `/cuentas/salir/` | Autenticación (el cierre de sesión es por POST) |
-| `/admin/` | Django Admin (incluye **Votos**, solo lectura) |
+Ejemplo:
 
-## Perfiles y permisos
-
-Al migrar se crea el grupo **Administrador** (ediciones, categorías, votaciones, opciones, auditoría y **consulta de votos**). Para dar acceso: en `/admin/` cree el usuario, marque *Es staff* y asígnelo a ese grupo. Un usuario *staff* sin el grupo no puede gestionar contenido ni ver votos. Los votos son de solo lectura para todos, incluido el superusuario: solo se crean desde el sitio público.
-
-## Estructura
-
+```text
+http://127.0.0.1:8000/api/categorias/?edicion=1
 ```
-festival_votaciones/
+
+Solo admite solicitudes GET. Otros métodos reciben una respuesta HTTP 405.
+
+---
+
+## 8. Diseño y seguridad de las votaciones
+
+El sistema implementa diferentes mecanismos para garantizar la integridad de los votos.
+
+### Restricción de unicidad
+
+Se utiliza una restricción `UniqueConstraint` sobre usuario, categoría y edición.
+
+Esto evita que un usuario registre más de un voto en una misma categoría y edición.
+
+### Validaciones en el servidor
+
+Antes de registrar un voto se comprueba:
+
+- Que el usuario haya iniciado sesión.
+- Que la votación esté abierta.
+- Que la fecha permita participar.
+- Que la categoría y la edición estén activas.
+- Que la opción seleccionada pertenezca a la votación.
+- Que el usuario no haya votado previamente en esa categoría y edición.
+
+### Control de concurrencia
+
+Se utiliza `transaction.atomic()` y manejo de `IntegrityError` para controlar solicitudes simultáneas y evitar registros duplicados.
+
+### Protección de datos
+
+- Protección CSRF en formularios.
+- Contraseñas almacenadas mediante hash.
+- Variables sensibles configuradas mediante `.env`.
+- Consultas a la base de datos mediante el ORM de Django.
+- Protección de registros históricos mediante claves foráneas con `PROTECT`.
+
+---
+
+## 9. Resultados de votaciones
+
+El sistema permite consultar resultados de votaciones publicadas.
+
+La visualización contempla:
+
+- Participantes y sus respectivos votos.
+- Total de votos registrados.
+- Porcentaje de participación por participante.
+- Información relacionada con la categoría y edición.
+
+Los resultados están sujetos al estado de publicación de cada votación.
+
+---
+
+## 10. Estructura del proyecto
+
+```text
+festival_votaciones_entrega/
+│
 ├── manage.py
 ├── requirements.txt
-├── .env.example            # plantilla de configuración (sin secretos)
-├── config/                 # settings, urls raíz, wsgi
-├── festival/               # modelos (incl. Voto), servicios, vistas, API, admin, pruebas, comandos
-├── cuentas/                # registro, login, logout
-├── templates/              # base.html, festival/*, registration/*
-└── static/                 # css/estilos.css, js/app.js, vendor/bootstrap (local)
+├── .env.example
+├── .gitignore
+│
+├── config/
+│   ├── settings.py
+│   ├── urls.py
+│   └── wsgi.py
+│
+├── festival/
+│   ├── models.py
+│   ├── views.py
+│   ├── servicios.py
+│   ├── forms.py
+│   ├── api.py
+│   ├── admin.py
+│   ├── urls.py
+│   ├── tests_votos.py
+│   ├── migrations/
+│   └── management/
+│
+├── cuentas/
+│
+├── templates/
+│   ├── base.html
+│   ├── festival/
+│   │   ├── inicio.html
+│   │   ├── edicion.html
+│   │   ├── categoria.html
+│   │   ├── votacion.html
+│   │   └── resultados.html
+│   └── registration/
+│
+└── static/
+    ├── css/
+    │   └── estilos.css
+    ├── js/
+    └── vendor/
+        └── bootstrap/
 ```
 
-## Seguridad
+---
 
-- Contraseña de MySQL, `SECRET_KEY` y demás valores sensibles se leen de variables de entorno (`.env`), nunca del código; `.env` está ignorado por git.
-- Contraseñas de usuarios con hash PBKDF2; protección **CSRF** activa en todos los formularios (el voto sin token recibe `403`).
-- Autenticación obligatoria para votar; validación de datos y de reglas de negocio en el servidor; consultas con el ORM (sin SQL concatenado).
-- Todos los datos incluidos son **datos de prueba**; ningún participante corresponde a una persona real.
-- `DJANGO_DEBUG` está en `False` por defecto. Antes de desplegar: `DJANGO_SECRET_KEY` propia, `DJANGO_ALLOWED_HOSTS` definido y `DJANGO_HTTPS=True`; verifique con `python manage.py check --deploy`.
+## 11. Pruebas del proyecto
 
-## Limitaciones conocidas y pendientes
+Para ejecutar todas las pruebas:
 
-- La verificación de identidad del votante (correo confirmado, documento) y la publicación de resultados están **pendientes de validación con la Fundación**.
-- No hay límite de intentos (rate limiting) en el inicio de sesión ni en el endpoint de voto; se recomienda agregarlo antes de producción (por ejemplo `django-axes` o un limitador en el servidor web).
-- La API es de solo lectura (GET); no se implementa API de votación por POST, que no es requerida en esta entrega.
+```powershell
+python manage.py test
+```
+
+Para ejecutar las pruebas del módulo de votaciones:
+
+```powershell
+python manage.py test festival.tests_votos -v 2
+```
+
+El proyecto cuenta con pruebas para verificar:
+
+| Caso | Descripción |
+|---|---|
+| CP-01 | Registro de un voto válido |
+| CP-02 | Rechazo de votos duplicados |
+| CP-03 | Votación en otra categoría |
+| CP-04 | Autenticación obligatoria |
+| CP-05 | Validación de votaciones no habilitadas |
+| CP-06 | Validación de opciones |
+| CP-07 | Consulta de Mis votos |
+| CP-08 | Consulta administrativa |
+| CP-09 | Control de concurrencia |
+| CP-10 | Respuesta de la API GET |
+| CSRF | Protección contra solicitudes sin token |
+
+Las pruebas requieren que MySQL tenga permisos para crear y eliminar la base de datos de pruebas.
+
+---
+
+## 12. Rutas principales
+
+| Ruta | Funcionalidad |
+|---|---|
+| `/` | Página principal |
+| `/ediciones/` | Consulta de ediciones |
+| `/ediciones/<id>/` | Detalle de edición |
+| `/categorias/<id>/` | Categorías y votaciones |
+| `/votaciones/<id>/` | Opciones de votación |
+| `/votaciones/<id>/votar/` | Proceso de registro del voto |
+| `/mis-votos/` | Historial de participación |
+| `/api/categorias/` | API GET |
+| `/admin/` | Administración de Django |
+| `/cuentas/registro/` | Registro de usuarios |
+| `/cuentas/ingresar/` | Inicio de sesión |
+| `/cuentas/salir/` | Cierre de sesión |
+
+---
+
+## 13. Perfiles y permisos
+
+El sistema contempla usuarios y personal administrativo.
+
+**Usuario votante:**
+- Consultar ediciones y categorías.
+- Consultar opciones disponibles.
+- Registrar votos.
+- Consultar su historial de participación.
+
+**Administrador:**
+- Gestionar ediciones.
+- Gestionar categorías.
+- Gestionar votaciones.
+- Gestionar opciones y participantes.
+- Consultar los votos registrados.
+- Administrar la información del festival.
+
+La administración se realiza desde Django Admin.
+
+---
+
+## 14. Seguridad y recomendaciones para producción
+
+- Las contraseñas de MySQL y las claves secretas se gestionan mediante variables de entorno.
+- El archivo `.env` está excluido del control de versiones.
+- Las contraseñas de los usuarios se almacenan mediante mecanismos de hash de Django.
+- Los formularios cuentan con protección CSRF.
+- La emisión de votos requiere autenticación.
+- Las reglas de negocio se validan en el servidor.
+- Los datos de prueba son ficticios y no representan participantes reales.
+
+Antes de desplegar en producción:
+
+1. Configurar `DJANGO_DEBUG=False`.
+2. Establecer una `DJANGO_SECRET_KEY` propia y segura.
+3. Definir correctamente `DJANGO_ALLOWED_HOSTS`.
+4. Configurar HTTPS.
+5. Configurar `DJANGO_CSRF_TRUSTED_ORIGINS` cuando corresponda.
+6. Ejecutar:
+
+```powershell
+python manage.py check --deploy
+```
+
+---
+
+## 15. Limitaciones conocidas y mejoras futuras
+
+- Implementar verificación de identidad del votante mediante correo confirmado y documento, según los requisitos institucionales.
+- Incorporar limitación de intentos (rate limiting) en el inicio de sesión y en el endpoint de votación.
+- Evaluar la implementación de una API de votación mediante POST si se requiere en futuras versiones.
+- Realizar pruebas de despliegue en un servidor de producción.
+
+---
+
+## 16. Autoría académica
+
+**Proyecto:** Sistema Web de Votaciones – Festival de la Leyenda Vallenata 2027.
+
+**Institución:** Fundación Universitaria del Área Andina.
+
+**Asignatura:** Desarrollo Web.
+
+**Entrega:** Entrega 3 – Módulo de votaciones, validaciones y API GET.
+
+**Tecnologías principales:** Python, Django, MySQL, HTML, CSS, JavaScript y Bootstrap.
+
+---
+
+**Repositorio de entrega:**  
+https://github.com/ericaurte3-cpu/festival_votaciones_entrega
+
+**Repositorio de trabajo original:**  
+https://github.com/ericaurte3-cpu/festival_votaciones
